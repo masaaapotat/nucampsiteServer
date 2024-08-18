@@ -1,54 +1,104 @@
-const express = require('express');
+const express = require("express");
+const Campsite = require("../models/campsite");
 const campsiteRouter = express.Router();
 
-// handle routing
+// Handle routing for the /campsites endpoint
+campsiteRouter
+  .route("/")
 
-campsiteRouter.route('/')
-.all( (req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    // passes control to the next function
-    next();
-})
-.get( (req, res) => {
-    res.end('Will send all the camps to you');
+  // GET request to fetch all campsites
+  .get((req, res, next) => {
+    // Fetch all campsite documents from the database
+    Campsite.find() 
+      .then((campsites) => {
+        res.statusCode = 200; 
+        res.setHeader("Content-Type", "application/json"); 
+        res.json(campsites); 
+      })
+      .catch((err) => next(err)); 
+  })
 
-})
-.post( (req, res) => {
-    res.end(`Will add the camps: ${req.body.name} with description: ${req.body.description}`);
-})
+  // POST request to create a new campsite
+  .post((req, res, next) => {
+    // Create a new campsite document from the request body
+    Campsite.create(req.body) 
+      .then((campsite) => {
+        console.log("Campsite Created ", campsite); 
+        res.statusCode = 200; 
+        res.setHeader("Content-Type", "application/json"); 
+        res.json(campsite); 
+      })
+      .catch((err) => next(err)); 
+  })
 
-.put( (req, res) => {
-    res.statusCode = 403;
-    res.end('PUT operation not supported on /campsites');
-})
+  // PUT request is not allowed on /campsites
+  .put((req, res) => {
+    res.statusCode = 403; 
+    res.end("PUT operation not supported on /campsites"); 
+  })
 
-.delete( (req, res) => {
-    res.end('Deleting all campsites');
-});
+  // DELETE request to delete all campsites
+  .delete((req, res, next) => {
+    Campsite.deleteMany() 
+      .then((response) => {
+        res.statusCode = 200; 
+        res.setHeader("Content-Type", "application/json"); 
+        res.json(response); 
+      })
+      .catch((err) => next(err));
+  });
 
-// handles route for individual campsite
+// Handle routing for individual campsite based on ID (/campsites/:campsiteId)
+campsiteRouter
+  .route("/:campsiteId")
 
-campsiteRouter.route('/:campsiteId')
-.all( (req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
-})
-.get( (req, res) => {
-    res.end(`Will send details of the campsite: ${req.params.campsiteId} to you`);
-})
-.post( (req, res) => {
-    res.statusCode = 403;
-    res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
-})
-.put( (req, res) => {
-    res.write(`Updating the campsite: ${req.params.campsiteId}\n`);
-    res.end(`Will update the campsite : ${req.body.name} with description: ${req.body.description}`)
-})
+  // GET request to fetch a campsite by ID
+  .get((req, res, next) => {
+    // Find the campsite document by ID
+    Campsite.findById(req.params.campsiteId) 
+      .then((campsite) => {
+        res.statusCode = 200; 
+        res.setHeader("Content-Type", "application/json"); 
+        res.json(campsite); 
+      })
+      .catch((err) => next(err));
+  })
 
-.delete( (req, res) => {
-    res.end(`Deleting campsite: ${req.params.campsiteId}`);
-});
+  // POST request is not allowed on /campsites/:campsiteId
+  .post((req, res) => {
+    res.statusCode = 403; 
+    res.end(
+      `POST operation not supported on /campsites/${req.params.campsiteId}`
+    ); 
+  })
 
-module.exports=campsiteRouter
+  // PUT request to update a campsite by ID
+  .put((req, res, next) => {
+    Campsite.findByIdAndUpdate(
+      req.params.campsiteId, // Find campsite by ID
+      {
+        $set: req.body, // Update the campsite fields with the request body
+      },
+      // Return the updated document
+      { new: true } 
+    )
+      .then((campsite) => {
+        res.statusCode = 200; 
+        res.setHeader("Content-Type", "application/json");
+        res.json(campsite); 
+      })
+      .catch((err) => next(err)); 
+  })
+
+  // DELETE request to delete a campsite by ID
+  .delete((req, res, next) => {
+    Campsite.findByIdAndDelete(req.params.campsiteId) // Delete campsite by ID
+      .then((response) => {
+        res.statusCode = 200; 
+        res.setHeader("Content-Type", "application/json"); 
+        res.json(response); 
+      })
+      .catch((err) => next(err)); 
+  });
+
+module.exports = campsiteRouter;
