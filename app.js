@@ -3,6 +3,8 @@ var express = require("express");
 var path = require("path");
 const cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const session = require("express-session");
+const FileStore = require("session-file-store")(session);
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 const campsiteRouter = require("./routes/campsiteRouter");
@@ -27,14 +29,26 @@ app.set("view engine", "pug");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser("12345-6789-56789"));
+// app.use(cookieParser("12345-6789-56789"));
+
+app.use(
+  session({
+    name: "session-id",
+    secret: "12345-6789-56789",
+    //when a session is made, and no updates are made, it will not be saved, no cookie will be sent to client
+    saveUninitialized: false,
+    resave: false,
+    store: new FileStore(),
+  })
+);
 
 function auth(req, res, next) {
+  console.log(req.session);
   // Log the request headers to the console for debugging purposes
   // console.log(req.headers);
 
   // Check if the signed cookie 'user' is not present
-  if (!req.signedCookies.user) {
+  if (!req.session.user) {
     // Extract the 'Authorization' header from the request
     const authHeader = req.headers.authorization;
 
@@ -65,7 +79,7 @@ function auth(req, res, next) {
     // Check if the provided username and password are correct
     if (username === "admin" && password === "password") {
       // Set a signed cookie named 'user' with the value 'admin'
-      res.cookie("user", "admin", { signed: true });
+      req.session.user="admin";
 
       // If the credentials are correct, call the next middleware function
       return next(); // authorized
@@ -84,7 +98,7 @@ function auth(req, res, next) {
     }
   } else {
     // If the signed cookie 'user' is present and its value is 'admin', authorize the user
-    if (req.signedCookies.user === "admin") {
+    if (req.session.user === "admin") {
       return next();
     } else {
       // If the cookie value is not 'admin', the user is not authenticated
