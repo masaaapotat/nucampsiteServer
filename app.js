@@ -8,7 +8,7 @@ var usersRouter = require('./routes/users');
 const campsiteRouter = require('./routes/campsiteRouter');
 const promotionRouter = require('./routes/promotionRouter');
 const partnerRouter = require('./routes/partnerRouter');
-var app = express();
+const app = express();
 
 
 const mongoose = require('mongoose');
@@ -30,6 +30,60 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+
+function auth(req, res, next) {
+  // Log the request headers to the console for debugging purposes
+  console.log(req.headers);
+
+  // Extract the 'Authorization' header from the request
+  const authHeader = req.headers.authorization;
+
+  // If the 'Authorization' header is missing, the user is not authenticated
+  if (!authHeader) {
+    // Create an error object with a message indicating authentication failure
+    const err = new Error('You are not authenticated!');
+    
+    // Set the 'WWW-Authenticate' header to prompt the client for credentials
+    res.setHeader('WWW-Authenticate', 'Basic');
+    
+    // Set the status code to 401 (Unauthorized)
+    err.status = 401;
+    
+    // Pass the error to the next middleware function
+    return next(err);
+  }
+
+  // Decode the Base64-encoded credentials from the 'Authorization' header
+  const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+  
+  // Extract the username and password from the decoded credentials
+  const username = auth[0];
+  const password = auth[1];
+
+  // Check if the provided username and password are correct
+  if (username === 'admin' && password === 'password') {
+    // If the credentials are correct, call the next middleware function
+    next(); // authorized
+  } else {
+    // If the credentials are incorrect, the user is not authenticated
+    const err = new Error('You are not authenticated!');
+    
+    // Set the 'WWW-Authenticate' header to prompt the client for credentials again
+    res.setHeader('WWW-Authenticate', 'Basic');
+    
+    // Set the status code to 401 (Unauthorized)
+    err.status = 401;
+    
+    // Pass the error to the next middleware function
+    return next(err);
+  }
+}
+
+// Use the 'auth' middleware function for all routes in the application
+app.use(auth);
+
+// Serve static content for the app from the "public" directory in the application directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
