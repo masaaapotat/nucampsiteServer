@@ -1,5 +1,6 @@
 const express = require("express");
 const Campsite = require("../models/campsite");
+const authenticate= require("../authenticate");
 const campsiteRouter = express.Router();
 
 // Handle routing for the /campsites endpoint
@@ -19,7 +20,7 @@ campsiteRouter
   })
 
   // POST request to create a new campsite
-  .post((req, res, next) => {
+  .post(authenticate.verifyUser,(req, res, next) => {
     // Create a new campsite document from the request body
     Campsite.create(req.body)
       .then((campsite) => {
@@ -32,13 +33,13 @@ campsiteRouter
   })
 
   // PUT request is not allowed on /campsites
-  .put((req, res) => {
+  .put(authenticate.verifyUser,(req, res) => {
     res.statusCode = 403;
     res.end("PUT operation not supported on /campsites");
   })
 
   // DELETE request to delete all campsites
-  .delete((req, res, next) => {
+  .delete(authenticate.verifyUser,(req, res, next) => {
     Campsite.deleteMany()
       .then((response) => {
         res.statusCode = 200;
@@ -65,7 +66,7 @@ campsiteRouter
   })
 
   // POST request is not allowed on /campsites/:campsiteId
-  .post((req, res) => {
+  .post(authenticate.verifyUser,(req, res) => {
     res.statusCode = 403;
     res.end(
       `POST operation not supported on /campsites/${req.params.campsiteId}`
@@ -73,7 +74,7 @@ campsiteRouter
   })
 
   // PUT request to update a campsite by ID
-  .put((req, res, next) => {
+  .put(authenticate.verifyUser,(req, res, next) => {
     Campsite.findByIdAndUpdate(
       req.params.campsiteId, // Find campsite by ID
       {
@@ -91,7 +92,7 @@ campsiteRouter
   })
 
   // DELETE request to delete a campsite by ID
-  .delete((req, res, next) => {
+  .delete(authenticate.verifyUser,(req, res, next) => {
     Campsite.findByIdAndDelete(req.params.campsiteId) 
       .then((response) => {
         res.statusCode = 200;
@@ -127,7 +128,7 @@ campsiteRouter
   })
 
   // POST request to add a new comment to a specific campsite
-  .post((req, res, next) => {
+  .post(authenticate.verifyUser,(req, res, next) => {
     Campsite.findById(req.params.campsiteId) 
       .then((campsite) => {
         if (campsite) {
@@ -153,7 +154,7 @@ campsiteRouter
   })
 
   // PUT request is not supported on /comments
-  .put((req, res) => {
+  .put(authenticate.verifyUser,(req, res) => {
     res.statusCode = 403; 
     res.end(
       `PUT operation not supported on /campsites/${req.params.campsiteId}/comments`
@@ -161,7 +162,7 @@ campsiteRouter
   })
 
   // DELETE request to remove all comments for a specific campsite
-  .delete((req, res, next) => {
+  .delete(authenticate.verifyUser,(req, res, next) => {
     Campsite.findById(req.params.campsiteId) 
       .then((campsite) => {
         if (campsite) {
@@ -216,7 +217,7 @@ campsiteRouter
   })
 
   // POST request is not supported on a specific comment
-  .post((req, res) => {
+  .post(authenticate.verifyUser,(req, res) => {
     res.statusCode = 403;
     res.end(
       `POST operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentId}`
@@ -224,7 +225,7 @@ campsiteRouter
   })
 
   // PUT request to update a specific comment by ID
-  .put((req, res, next) => {
+  .put(authenticate.verifyUser,(req, res, next) => {
     Campsite.findById(req.params.campsiteId) 
       .then((campsite) => {
         if (campsite && campsite.comments.id(req.params.commentId)) {
@@ -260,7 +261,7 @@ campsiteRouter
   })
 
   // DELETE request to delete a specific comment by ID
-  .delete((req, res, next) => {
+  .delete(authenticate.verifyUser,(req, res, next) => {
     Campsite.findById(req.params.campsiteId) 
       .then((campsite) => {
         if (campsite && campsite.comments.id(req.params.commentId)) {
