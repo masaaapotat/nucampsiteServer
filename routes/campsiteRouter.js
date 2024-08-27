@@ -21,7 +21,7 @@ campsiteRouter
   })
 
   // POST request to create a new campsite
-  .post(authenticate.verifyUser,(req, res, next) => {
+  .post(authenticate.verifyUser,authenticate.verifyAdmin,(req, res, next) => {
     // Create a new campsite document from the request body
     Campsite.create(req.body)
       .then((campsite) => {
@@ -40,7 +40,7 @@ campsiteRouter
   })
 
   // DELETE request to delete all campsites
-  .delete(authenticate.verifyUser,(req, res, next) => {
+  .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res, next) => {
     Campsite.deleteMany()
       .then((response) => {
         res.statusCode = 200;
@@ -76,7 +76,7 @@ campsiteRouter
   })
 
   // PUT request to update a campsite by ID
-  .put(authenticate.verifyUser,(req, res, next) => {
+  .put(authenticate.verifyUser,authenticate.verifyAdmin,(req, res, next) => {
     Campsite.findByIdAndUpdate(
       req.params.campsiteId, // Find campsite by ID
       {
@@ -94,7 +94,7 @@ campsiteRouter
   })
 
   // DELETE request to delete a campsite by ID
-  .delete(authenticate.verifyUser,(req, res, next) => {
+  .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res, next) => {
     Campsite.findByIdAndDelete(req.params.campsiteId) 
       .then((response) => {
         res.statusCode = 200;
@@ -119,7 +119,7 @@ campsiteRouter
           // If campsite exists
           res.statusCode = 200; 
           res.setHeader("Content-Type", "application/json"); 
-          res.json(campsite.comments); e
+          res.json(campsite.comments); 
         } else {
           // If campsite not found
           const err = new Error(`Campsite ${req.params.campsiteId} not found`); 
@@ -167,7 +167,7 @@ campsiteRouter
   })
 
   // DELETE request to remove all comments for a specific campsite
-  .delete(authenticate.verifyUser,(req, res, next) => {
+  .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res, next) => {
     Campsite.findById(req.params.campsiteId) 
       .then((campsite) => {
         if (campsite) {

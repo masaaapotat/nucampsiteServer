@@ -6,10 +6,13 @@ const router = express.Router();
 const passport = require("passport");
 const authenticate = require("../authenticate");
 
-/* GET users listing. */
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
-});
+/* 
+GET users listing.
+// router.get("/", function (req, res, next) {
+  // res.send("respond with a resource");
+// });
+ */
+
 
 // Route for user signup
 router.post('/signup', (req, res) => {
@@ -67,6 +70,16 @@ router.get("/logout", (req, res, next) => {
     err.status = 401; // 401 Unauthorized status code
     return next(err);
   }
+});
+// GET /users route to retrieve all users accessible by admins
+router.get("/", authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  User.find() // Fetch all user documents from the database
+    .then((users) => {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(users);
+    })
+    .catch((err) => next(err)); // Handle any errors
 });
 
 module.exports = router;
