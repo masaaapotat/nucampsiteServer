@@ -11,6 +11,7 @@ campsiteRouter
   .get((req, res, next) => {
     // Fetch all campsite documents from the database
     Campsite.find()
+      .populate("comments.author")
       .then((campsites) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
@@ -57,6 +58,7 @@ campsiteRouter
   .get((req, res, next) => {
     // Find the campsite document by ID
     Campsite.findById(req.params.campsiteId)
+    .populate("comments.author")
       .then((campsite) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
@@ -111,6 +113,7 @@ campsiteRouter
   // GET request to retrieve all comments for a specific campsite
   .get((req, res, next) => {
     Campsite.findById(req.params.campsiteId) 
+    .populate("comments.author")
       .then((campsite) => {
         if (campsite) {
           // If campsite exists
@@ -132,6 +135,8 @@ campsiteRouter
     Campsite.findById(req.params.campsiteId) 
       .then((campsite) => {
         if (campsite) {
+          // if comment is saved it will have the id of the user
+          req.body.author = req.user._id;
           // If campsite exists
           campsite.comments.push(req.body); 
           campsite
@@ -195,7 +200,8 @@ campsiteRouter
   // GET request to retrieve a specific comment by ID
   .get((req, res, next) => {
     Campsite.findById(req.params.campsiteId) // Find campsite by ID
-      .then((campsite) => {
+    .populate("comments.author") 
+    .then((campsite) => {
         if (campsite && campsite.comments.id(req.params.commentId)) {
           // If campsite and comment exist
           res.statusCode = 200; 
