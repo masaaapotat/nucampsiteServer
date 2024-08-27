@@ -1,5 +1,5 @@
 const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy; // Importing the local strategy from Passport for local authentication
+const LocalStrategy = require("passport-local").Strategy; 
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const jwt = require("jsonwebtoken"); // used to create, sign, and verify tokens
@@ -60,3 +60,12 @@ exports.jwtPassport = passport.use(
 
 // Middleware function to verify the user using the JWT strategy. This will be used to protect routes that require authentication.
 exports.verifyUser = passport.authenticate("jwt", { session: false });
+exports.verifyAdmin = (req, res, next) => {
+  if (req.user.admin) {
+    return next();
+  } else {
+    const err = new Error("You are not authorized to perform this operation!");
+    err.status = 403;
+    return next(err);
+  }
+}
